@@ -17,7 +17,7 @@ This repository contains UML diagrams represented as images.
 
 ## Class Diagram
 
-![Class Diagram](ClassDiagram.png)
+![Class Diagram](ClassDiagramIBMROSE.PNG)
 
 ## Collaboration Diagram
 
