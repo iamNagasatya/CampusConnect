@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+    {{success_msg}}
+    <form method="POST">
+        {% csrf_token %}
+        <div>
+            <label for="id_name">Name:</label>
+            <input type="text" name="name" maxlength="50" required id="id_name">
+        </div>
+
+        <div>
+            <label for="id_description">Description:</label>
+            <input type="text" name="description" maxlength="200"
+                    required id="id_description">
+        </div>
+        
+        <div>
+            <label for="id_deadline">Deadline:</label>
+            <input type="datetime-local" name="deadline" required id="id_deadline">
+        </div>
+        
+        <div>
+            <label for="id_duration">Duration:</label> 
+            <input type="text" name="duration" required id="id_duration">
+        </div>
+        
+        <div>
+            <label for="id_is_important">Is important:</label> 
+            <input type="checkbox" name="is_important"
+                    id="id_is_important">
+        </div>
+        
+        <div>
+            <label for="id_is_fixed">Is fixed:</label> 
+            <input type="checkbox" name="is_fixed" id="id_is_fixed">
+        </div>
+        
+        <div>
+            <label for="id_has_intrest">Has intrest:</label>
+            <input type="checkbox" name="has_intrest"
+                    id="id_has_intrest">
+        </div>
+
+        <div><button type="submit"> Add Task </button></div>
+    </form>
+</div>
+
+
+
+{% endblock %}

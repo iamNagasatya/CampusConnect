@@ -1,0 +1,58 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12 col-xl-4">
+      <div class="card h-100">
+        <div class="card-header pb-0 p-3">
+          <div class="row">
+            <div class="col-md-8 d-flex align-items-center">
+              <h6 class="mb-0">Profile Information</h6>
+            </div>
+            <div class="col-md-4 text-end">
+              <a href="javascript:;">
+                <i
+                  class="fas fa-user-edit text-secondary text-sm"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Edit Profile"
+                ></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3 mb-3">
+          
+          <ul class="list-group">
+            <li class="list-group-item border-0 ps-0 pt-0 text-sm">
+              <strong class="text-dark">Username:</strong> {{user.username}}
+            </li>
+
+            <li class="list-group-item border-0 ps-0 pt-0 text-sm">
+              <strong class="text-dark">First Name:</strong> {{user.first_name|title}}
+            </li>
+
+            <li class="list-group-item border-0 ps-0 pt-0 text-sm">
+              <strong class="text-dark">Last Name:</strong> {{user.last_name|title}}
+            </li>
+
+            <li class="list-group-item border-0 ps-0 text-sm">
+              <strong class="text-dark">Email:</strong> {{user.email}}
+            </li>
+            <li class="list-group-item border-0 ps-0 text-sm">
+              <strong class="text-dark">Branch:</strong> {{student.branch.name}}
+            </li>
+            <li class="list-group-item border-0 ps-0 text-sm">
+              <strong class="text-dark">Section:</strong> {{student.section}}
+            </li>
+            <li class="list-group-item border-0 ps-0 text-sm">
+              <strong class="text-dark">Year of joining:</strong> {{student.year_of_joining}}
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Blog | Registration{% endblock title %}
+{% block content %}
+
+      <div class="container">
+        <div class="page-name">
+          <a href="#" class="learn">
+            <span class="material-icons"> keyboard_return </span> Go back
+          </a>
+          <h1>Sign Up</h1>
+        </div>
+
+        <form method="post" class="form">
+            {% csrf_token %}
+          <center>
+            <div class="logo f-logo">
+              <i class="fa-brands fa-blogger"></i>
+            </div>
+
+            {% if user_form.non_field_errors %}
+            {% for error in user_form.non_field_errors %}
+                <div class="field-error">
+                    <p>{{error}}</p>
+                </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="inputs">
+              <div>
+                {{ user_form.username.label_tag}}
+                <div class="search-bar s-active input">
+                  {{user_form.username}}
+                  <div class="animated-search">
+                    <i class="uil uil-user"></i>
+                  </div>
+                </div>
+                {% if user_form.username.errors %}
+                <div class="field-error">
+                  <p>{{user_form.username.errors.as_text}}</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                {{user_form.email.label_tag}}
+                <div class="search-bar s-active input">
+                  {{user_form.email}}
+                  <div class="animated-search">
+                    <i class="uil uil-envelope-alt"></i>
+                  </div>
+                </div>
+                {% if user_form.email.errors %}
+                <div class="field-error">
+                  <p>{{user_form.email.errors.as_text}}</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                {{user_form.password.label_tag}}
+                <div class="search-bar s-active input">
+                  {{user_form.password}}
+                  <div class="animated-search">
+                    <i class="uil uil-key-skeleton"></i>
+                  </div>
+                </div>
+                {% if user_form.password.errors %}
+                <div class="field-error">
+                  <p>{{user_form.password.errors.as_text}}</p>
+                </div>
+                {% endif %}
+              </div>
+              <div>
+                {{student_form.branch.label_tag}}
+                <div class="search-bar s-active input">
+                  {{student_form.branch}}
+                  <div class="animated-search">
+                    <i class="uil uil-envelope-alt"></i>
+                  </div>
+                </div>
+                {% if student_form.branch.errors %}
+                <div class="field-error">
+                  <p>{{student_form.branch.errors.as_text}}</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                {{student_form.section.label_tag}}
+                <div class="search-bar s-active input">
+                  {{student_form.section}}
+                  <div class="animated-search">
+                    <i class="uil uil-envelope-alt"></i>
+                  </div>
+                </div>
+                {% if student_form.section.errors %}
+                <div class="field-error">
+                  <p>{{student_form.section.errors.as_text}}</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                {{student_form.year_of_joining.label_tag}}
+                <div class="search-bar s-active input">
+                  {{student_form.year_of_joining}}
+                  <div class="animated-search">
+                    <i class="uil uil-envelope-alt"></i>
+                  </div>
+                </div>
+                {% if student_form.year_of_joining.errors %}
+                <div class="field-error">
+                  <p>{{student_form.year_of_joining.errors.as_text}}</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <button class="btn btn-primary rounded">
+                SIGN UP <span class="material-icons"> arrow_right_alt </span>
+              </button>
+              <center>
+                <p>Already have an account? <a href="login.html">Login</a></p>
+              </center>
+            </div>
+          </center>
+        </form>
+      </div>
+
+{% endblock content %}
