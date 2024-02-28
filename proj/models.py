@@ -50,6 +50,7 @@ class Task(models.Model):
     is_important = models.BooleanField(default=False)
     is_fixed = models.BooleanField(default=False)
     has_intrest = models.BooleanField(default=False)
+    status = models.BooleanField(default=False)
 
 def __str__(self):
     return f"{self.name} {self.deadline}"

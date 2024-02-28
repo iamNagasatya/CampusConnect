@@ -17,27 +17,39 @@
                   <th
                     class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
                   >
-                    Author
+                    Task Name
                   </th>
                   <th
                     class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
                   >
-                    Function
+                    Deadline & Duration
+                  </th>
+                  
+                  <th
+                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                  >
+                    Important ?
+                  </th>
+                  <th
+                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                  >
+                    Has Intrest ?
+                  </th>
+                  <th
+                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                  >
+                    Fixed Task ?
                   </th>
                   <th
                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
                   >
                     Status
                   </th>
-                  <th
-                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                  >
-                    Employed
-                  </th>
                   <th class="text-secondary opacity-7"></th>
                 </tr>
               </thead>
               <tbody>
+                {% for task in tasks%}
                 <tr>
                   <td>
                     <div class="d-flex px-2 py-1">
@@ -51,27 +63,38 @@
                       <div
                         class="d-flex flex-column justify-content-center"
                       >
-                        <h6 class="mb-0 text-sm">Task name</h6>
+                        <h6 class="mb-0 text-sm">{{task.name}}</h6>
                         <p class="text-xs text-secondary mb-0">
-                          Task Description
+                          {{task.description}}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <p class="text-xs font-weight-bold mb-0">Deadline</p>
+                    <p class="text-xs font-weight-bold mb-0">{{task.deadline}}</p>
                     <p class="text-xs text-secondary mb-0">
-                      Duration
+                      {{task.duration}}
                     </p>
                   </td>
-                  <td class="align-middle text-center text-sm">
-                    <span class="badge badge-sm bg-gradient-success"
-                      >Task Status</span
+                  
+                  <td class="align-middle text-center">
+                    <span class="text-secondary text-xs font-weight-bold"
+                      >{{task.is_important}}</span
                     >
                   </td>
                   <td class="align-middle text-center">
                     <span class="text-secondary text-xs font-weight-bold"
-                      >Importance</span
+                      >{{task.has_intrest}}</span
+                    >
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="text-secondary text-xs font-weight-bold"
+                      >{{task.is_fixed}}</span
+                    >
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="badge badge-sm bg-gradient-success"
+                      >{% if task.status%} Completed {% else %} Not Completed {% endif %}</span
                     >
                   </td>
                   <td class="align-middle">
@@ -85,7 +108,7 @@
                     </a>
                   </td>
                 </tr>
-                
+                {% endfor %}
               </tbody>
             </table>
           </div>
