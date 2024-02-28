@@ -5,42 +5,15 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
-from proj.models import Student, Branch, Manager
+from proj.models import Student, Branch, Manager, Task
 from proj.forms import UserForm, StudentForm, TaskForm
 
 from datetime import datetime, timedelta
 import heapq
 
-from .schedule import Task, Job
 
 
-jobs = []
 
-def plan():
-    jobs.sort()
-    print(jobs)
-
-    q = []
-
-    order = []
-
-    for i in range(len(jobs)-1, -1, -1):
-        t = jobs[i].deadline - (jobs[i-1].deadline if i else int(datetime.now().timestamp()))
-        heapq.heappush(q, Task(jobs[i]._id, jobs[i].duration, jobs[i].importance))
-
-        while t>0 and q:
-            task = heapq.heappop(q) #min duration
-
-            if(task.dur<=t):
-                t-=task.dur
-                order.append(task._id)
-            else:
-                heapq.heappush(q, Task(task._id, task.dur-t, task.imp))
-                break
-    
-    order.reverse()
-
-    return [ j for j in jobs if(j._id in order) ], q
 
 @login_required
 def home(request):
@@ -48,7 +21,9 @@ def home(request):
 
 @login_required
 def managetasks(request):
-    return render(request, "pages/managetasks.html")
+    tasks = Task.objects.all()
+
+    return render(request, "pages/managetasks.html", {"tasks" : tasks})
 
 @login_required
 def rescheduletasks(request):
@@ -148,7 +123,7 @@ def addtask(request):
 
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
-            "success_msg" : f"Task {task_form} added successfully"
+            "success_msg" : f"Task added successfully"
         })
         
     return render(request, "pages/addtask.html", {"task_form": task_form})
