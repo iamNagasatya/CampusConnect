@@ -19,6 +19,7 @@ from scheduler.algorithms import branch_bound_priority
 @login_required
 def home(request):
     tasks = Task.objects.filter(status=False)
+    tasks = [ task for task in tasks if(task.rel_deadline>0)]
     _tasks = [
         LinearDrop(
             duration=task.rel_duration, 
@@ -27,11 +28,16 @@ def home(request):
             l_drop=task.loss, 
             slope=task.priority
         ) 
-        for task in tasks if(task.rel_deadline>0) 
+        for task in tasks
     ]
-    sch = branch_bound_priority(_tasks, [0.0])
+    sch = branch_bound_priority(_tasks, [0.0])["t"]
     print(sch)
-    
+    for i, task in enumerate(tasks):
+        td = timedelta(seconds=sch[i])
+        sched = datetime.now(timezone.utc) + td
+        print(sched)
+        task.sched = sched
+    tasks.sort(key= lambda t : t.sched)
     return render(request, "pages/home.html", {"tasks" : tasks})
 
 @login_required

@@ -29,6 +29,12 @@
                   >
                     Deadline & Duration
                   </th>
+
+                  <th
+                    class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                  >
+                    Scheduled at
+                  </th>
                   
                   <th
                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
@@ -36,11 +42,7 @@
                     Priority
                   </th>
                   
-                  <th
-                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                  >
-                    Fixed Task ?
-                  </th>
+                  
                   <th
                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
                   >
@@ -82,18 +84,18 @@
                       {{task.duration}}
                     </p>
                   </td>
-                  
+                  <td class="align-middle text-center">
+                    <span class="text-secondary text-xs font-weight-bold"
+                      >{{task.sched}}</span
+                    >
+                  </td>
                   <td class="align-middle text-center">
                     <span class="text-secondary text-xs font-weight-bold"
                       >{{task.priority}}</span
                     >
                   </td>
                   
-                  <td class="align-middle text-center">
-                    <span class="text-secondary text-xs font-weight-bold"
-                      >{{task.is_fixed}}</span
-                    >
-                  </td>
+                  
                   <td class="align-middle text-center text-sm">
                     {% if not task.status%} <a class="badge badge-sm bg-info" href="/mark_done/{{task.id}}"> Mark Completed</a> {% else %} <a class="badge badge-sm bg-danger" href="/mark_undone/{{task.id}}"> Mark Not Completed</a> {% endif %}
      
