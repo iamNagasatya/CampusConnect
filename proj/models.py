@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from datetime import datetime, timedelta, timezone
 # Create your models here.
 
 class Branch(models.Model):
@@ -52,8 +53,25 @@ class Task(models.Model):
     has_intrest = models.BooleanField(default=False)
     status = models.BooleanField(default=False)
 
-def __str__(self):
-    return f"{self.name} {self.deadline}"
+    @property
+    def rel_deadline(self):
+        return (self.deadline - datetime.now(timezone.utc)).total_seconds()
+
+    @property
+    def rel_duration(self):
+        
+        return self.duration.total_seconds()
+    
+    @property
+    def priority(self):
+        return 2*self.is_important+1*self.has_intrest + 1
+    
+    @property
+    def loss(self):
+        return (2*self.is_important+1*self.has_intrest + 1)*1000000
+    
+    def __str__(self):
+        return f"{self.name} {self.deadline}"
 
 
     

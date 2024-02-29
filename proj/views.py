@@ -8,26 +8,43 @@ from django.contrib.auth import authenticate, login, logout
 from proj.models import Student, Branch, Manager, Task
 from proj.forms import UserForm, StudentForm, TaskForm
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import heapq
 
-
+from scheduler.tasks import LinearDrop
+from scheduler.algorithms import branch_bound_priority
 
 
 
 @login_required
 def home(request):
-    return render(request, "pages/home.html")
+    tasks = Task.objects.filter(status=False)
+    _tasks = [
+        LinearDrop(
+            duration=task.rel_duration, 
+            t_release=max(0, task.rel_deadline-task.rel_duration), 
+            t_drop=task.rel_deadline, 
+            l_drop=task.loss, 
+            slope=task.priority
+        ) 
+        for task in tasks if(task.rel_deadline>0) 
+    ]
+    sch = branch_bound_priority(_tasks, [0.0])
+    print(sch)
+    
+    return render(request, "pages/home.html", {"tasks" : tasks})
 
 @login_required
 def managetasks(request):
     tasks = Task.objects.all()
-
     return render(request, "pages/managetasks.html", {"tasks" : tasks})
 
 @login_required
 def rescheduletasks(request):
-    return render(request, "pages/rescheduletasks.html")
+    tasks = Task.objects.filter(status=False)
+    _tasks = [ task for task in tasks if(task.rel_deadline<0) ]
+    print(_tasks)
+    return render(request, "pages/rescheduletasks.html", {"tasks": _tasks})
 
 def register(request):
     if request.method == "POST":
@@ -128,3 +145,41 @@ def addtask(request):
         
     return render(request, "pages/addtask.html", {"task_form": task_form})
     
+@login_required
+def update_task(request, pk):
+    task = Task.objects.get(id=pk)
+    print(task)
+    task_form = TaskForm(instance=task)
+    if request.method == 'POST':
+        
+        task_form = TaskForm(request.POST, instance=task)
+        print(task_form)
+        task_form.save()
+
+        return render(request, "pages/addtask.html", {
+            "task_form" : task_form, 
+            "success_msg" : f"Updated successfully"
+        })
+        
+    return render(request, "pages/addtask.html", {"task_form": task_form})
+    
+@login_required
+def delete_task(request, pk):
+    task = Task.objects.get(id=pk)
+    print(task)
+    task.delete()
+    return HttpResponseRedirect("/managetasks")
+
+@login_required
+def mark_done(request, pk):
+    task = Task.objects.get(id=pk)
+    task.status = True
+    task.save()
+    return HttpResponseRedirect("/managetasks")
+
+@login_required
+def mark_undone(request, pk):
+    task = Task.objects.get(id=pk)
+    task.status = False
+    task.save()
+    return HttpResponseRedirect("/managetasks")
