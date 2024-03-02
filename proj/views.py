@@ -18,36 +18,42 @@ from scheduler.algorithms import branch_bound_priority
 
 @login_required
 def home(request):
-    tasks = Task.objects.filter(status=False)
+    student = Student.objects.get(user=request.user)
+    tasks = student.tasks.filter(status=False)
     tasks = [ task for task in tasks if(task.rel_deadline>0)]
-    _tasks = [
-        LinearDrop(
-            duration=task.rel_duration, 
-            t_release=max(0, task.rel_deadline-task.rel_duration), 
-            t_drop=task.rel_deadline, 
-            l_drop=task.loss, 
-            slope=task.priority
-        ) 
-        for task in tasks
-    ]
-    sch = branch_bound_priority(_tasks, [0.0])["t"]
-    print(sch)
-    for i, task in enumerate(tasks):
-        td = timedelta(seconds=sch[i])
-        sched = datetime.now(timezone.utc) + td
-        print(sched)
-        task.sched = sched
-    tasks.sort(key= lambda t : t.sched)
+    if tasks:
+        _tasks = [
+            LinearDrop(
+                duration=task.rel_duration, 
+                t_release=max(0, task.rel_deadline-task.rel_duration), 
+                t_drop=task.rel_deadline, 
+                l_drop=task.loss, 
+                slope=task.priority
+            ) 
+            for task in tasks
+        ]
+        sch = branch_bound_priority(_tasks, [0.0])["t"]
+        print(sch)
+        for i, task in enumerate(tasks):
+            td = timedelta(seconds=sch[i])
+            sched = datetime.now(timezone.utc) + td
+            print(sched)
+            task.sched = sched
+        tasks.sort(key= lambda t : t.sched)
     return render(request, "pages/home.html", {"tasks" : tasks})
 
 @login_required
 def managetasks(request):
-    tasks = Task.objects.all()
+    student = Student.objects.get(user=request.user)
+
+    tasks = student.tasks.all()
     return render(request, "pages/managetasks.html", {"tasks" : tasks})
 
 @login_required
 def rescheduletasks(request):
-    tasks = Task.objects.filter(status=False)
+    student = Student.objects.get(user=request.user)
+    tasks = student.tasks.filter(status=False)
+
     _tasks = [ task for task in tasks if(task.rel_deadline<0) ]
     print(_tasks)
     return render(request, "pages/rescheduletasks.html", {"tasks": _tasks})
@@ -140,10 +146,13 @@ def addtask(request):
     task_form = TaskForm()
     if request.method == 'POST':
         
-        task_form = TaskForm(request.POST)
-        print(task_form)
-        task_form.save()
-
+        task_form_post = TaskForm(request.POST)
+    
+        task = task_form_post.save()
+        student = Student.objects.get(user=request.user)
+        print(student)
+        task.created_by.add(student)
+        task.save()
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
             "success_msg" : f"Task added successfully"
@@ -159,8 +168,11 @@ def update_task(request, pk):
     if request.method == 'POST':
         
         task_form = TaskForm(request.POST, instance=task)
-        print(task_form)
-        task_form.save()
+        task = task_form.save()
+        student = Student.objects.get(user=request.user)
+        print(student)
+        task.created_by.add(student)
+        task.save()
 
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 

@@ -10,6 +10,7 @@
           <h6>All Tasks</h6>
         </div>
         <div class="card-body px-0 pt-0 pb-2">
+          {% if tasks %}
           <div class="table-responsive p-0">
             <table class="table align-items-center mb-0">
               <thead>
@@ -119,6 +120,9 @@
               </tbody>
             </table>
           </div>
+          {% else %}
+          <p class="text-center text-primary">Plase add Tasks</p>
+          {% endif %}
         </div>
       </div>
     </div>

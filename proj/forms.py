@@ -17,6 +17,7 @@ class StudentForm(forms.ModelForm):
 
 
 class TaskForm(forms.ModelForm):
+
     class Meta:
         model = Task
         fields = ("name", "description", "deadline", "duration", "is_important", "is_fixed", "has_intrest")

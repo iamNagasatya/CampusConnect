@@ -52,6 +52,7 @@ class Task(models.Model):
     is_fixed = models.BooleanField(default=False)
     has_intrest = models.BooleanField(default=False)
     status = models.BooleanField(default=False)
+    created_by = models.ManyToManyField(Student, related_name="tasks")
 
     @property
     def rel_deadline(self):
