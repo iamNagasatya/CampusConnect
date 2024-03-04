@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "proj",
     'django.contrib.admin',
+    "webpush",
 ]
 
 MIDDLEWARE = [
@@ -142,3 +143,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BG6jaufDdXHUegvelzB2muGY2UhLtZd3qycqezR2w9pqIX6Ef51hqbtoc9ZgcMuv2nxnqp0XzKLVUdxWJ9iTVUA",
+    "VAPID_PRIVATE_KEY":"3rpKrdB0wnbCZbK6f-dB3bQpsZVTfdFx1lmOogtstXc",
+    "VAPID_ADMIN_EMAIL": "n.nagasatyasai@gmail.com"
+}
+
+# Celery Configuration Options
+CELERY_TIMEZONE = 'Asia/Kolkata'
+CELERY_BROKER_URL = "redis://default:PHTn8NZcrlXCkiVKyY1yP7Arsxk0TLsM@redis-18726.c325.us-east-1-4.ec2.cloud.redislabs.com:18726/0"
+CELERY_RESULT_BACKEND = "redis://default:PHTn8NZcrlXCkiVKyY1yP7Arsxk0TLsM@redis-18726.c325.us-east-1-4.ec2.cloud.redislabs.com:18726/0"

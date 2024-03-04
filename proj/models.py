@@ -47,6 +47,7 @@ class Task(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
     deadline = models.DateTimeField()
+    scheduled_at = models.DateTimeField(null=True, blank=True)
     duration = models.DurationField()
     is_important = models.BooleanField(default=False)
     is_fixed = models.BooleanField(default=False)

@@ -14,6 +14,33 @@ import heapq
 from scheduler.tasks import LinearDrop
 from scheduler.algorithms import branch_bound_priority
 
+from proj.tasks import notify
+from webpush import send_user_notification
+
+
+def create_schedule(user):
+    student = Student.objects.get(user=user)
+    tasks = student.tasks.filter(status=False)
+    tasks = [ task for task in tasks if(task.rel_deadline>0)]
+    _tasks = [
+        LinearDrop(
+            duration=task.rel_duration, 
+            t_release=max(0, task.rel_deadline-task.rel_duration), 
+            t_drop=task.rel_deadline, 
+            l_drop=task.loss, 
+            slope=task.priority
+        ) 
+        for task in tasks
+    ]
+    sch = branch_bound_priority(_tasks, [0.0])["t"]
+    print(sch)
+    for i, task in enumerate(tasks):
+        td = timedelta(seconds=sch[i])
+        sched = datetime.now(timezone.utc) + td
+        print(sched)
+        task.scheduled_at = sched
+        task.save()
+
 
 
 @login_required
@@ -21,32 +48,16 @@ def home(request):
     student = Student.objects.get(user=request.user)
     tasks = student.tasks.filter(status=False)
     tasks = [ task for task in tasks if(task.rel_deadline>0)]
-    if tasks:
-        _tasks = [
-            LinearDrop(
-                duration=task.rel_duration, 
-                t_release=max(0, task.rel_deadline-task.rel_duration), 
-                t_drop=task.rel_deadline, 
-                l_drop=task.loss, 
-                slope=task.priority
-            ) 
-            for task in tasks
-        ]
-        sch = branch_bound_priority(_tasks, [0.0])["t"]
-        print(sch)
-        for i, task in enumerate(tasks):
-            td = timedelta(seconds=sch[i])
-            sched = datetime.now(timezone.utc) + td
-            print(sched)
-            task.sched = sched
-        tasks.sort(key= lambda t : t.sched)
+    tasks.sort(key= lambda task : task.scheduled_at)
     return render(request, "pages/home.html", {"tasks" : tasks})
 
 @login_required
 def managetasks(request):
+    
     student = Student.objects.get(user=request.user)
 
     tasks = student.tasks.all()
+    
     return render(request, "pages/managetasks.html", {"tasks" : tasks})
 
 @login_required
@@ -153,6 +164,9 @@ def addtask(request):
         print(student)
         task.created_by.add(student)
         task.save()
+        create_schedule(request.user)
+        notify(request.user.username, "TEST TASK", "F**K YOU")
+        # notify.apply_async(args=[request.user.username, task.name, task.description], eta=task.scheduled_at)
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
             "success_msg" : f"Task added successfully"
@@ -173,7 +187,7 @@ def update_task(request, pk):
         print(student)
         task.created_by.add(student)
         task.save()
-
+        create_schedule(request.user)
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
             "success_msg" : f"Updated successfully"
