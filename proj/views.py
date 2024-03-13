@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
-from proj.models import Student, Branch, Manager, Task
+from proj.models import Student, Branch, Manager, Task, GoogleAuth
 from proj.forms import UserForm, StudentForm, TaskForm
 
 from datetime import datetime, timedelta, timezone
@@ -17,11 +17,18 @@ from scheduler.algorithms import branch_bound_priority
 from proj.tasks import notify
 from webpush import send_user_notification
 
+from proj.google_auth import *
 
-def create_schedule(user):
-    student = Student.objects.get(user=user)
+
+
+def get_tasks(username, active=True):
+    student = Student.objects.get(user__username=username)
     tasks = student.tasks.filter(status=False)
-    tasks = [ task for task in tasks if(task.rel_deadline>0)]
+    return [ task for task in tasks if(task.rel_deadline>0 if active else task.rel_deadline<0)]
+
+def create_schedule(username):
+    tasks = get_tasks(username)
+    
     _tasks = [
         LinearDrop(
             duration=task.rel_duration, 
@@ -29,17 +36,31 @@ def create_schedule(user):
             t_drop=task.rel_deadline, 
             l_drop=task.loss, 
             slope=task.priority
-        ) 
+        )
         for task in tasks
     ]
     sch = branch_bound_priority(_tasks, [0.0])["t"]
     print(sch)
     for i, task in enumerate(tasks):
-        td = timedelta(seconds=sch[i])
+        td = timedelta(minutes=sch[i])
         sched = datetime.now(timezone.utc) + td
         print(sched)
         task.scheduled_at = sched
         task.save()
+
+    if( GoogleAuth.objects.filter(user__username=username)):
+        gauth = GoogleAuth.objects.get(user__username=username)
+        refresh_token = gauth.refresh_token
+        chk, access_token = refresh_access_token(refresh_token)
+
+        if(chk):
+            print("Valid Credentials")
+            creds = create_creds(access_token, refresh_token)
+            batchPush(creds, tasks)
+            
+        else:
+            print("User revoked the access to calender")
+            gauth.delete()
 
 
 
@@ -128,29 +149,7 @@ def profile(request):
     student = Student.objects.get(user=request.user)
     return render(request, "pages/profile.html", {"student" : student})
 
-# @login_required
-# def addtask(request):
-#     if request.method == 'POST':
-#         taskname = request.POST["taskname"]
-#         deadlinedate = request.POST["deadlinedate"]
-#         deadlinetime = request.POST["deadlinetime"]
-#         duration = request.POST["duration"]
-#         isimportant = "isimportant" in request.POST
-#         dt = datetime.strptime(f"{deadlinedate} {deadlinetime}", "%d/%m/%Y %I:%M %p")
-#         hrs, mins = duration.split(":")
-#         dur = timedelta(hours=int(hrs), minutes=int(mins))
 
-
-#         if(dt<datetime.now()):
-#             print("Dead")
-#             return render(request, "base.html")
-#         else:
-#             print("Active")
-#             job = Job(taskname, int(dur.total_seconds()), int(dt.timestamp()), isimportant)
-#             jobs.append(job)
-#             order, _ = plan()
-#             return render(request, "base.html", {"plan" : order})
-#     return render(request, "pages/addtask.html")
 
 @login_required
 def addtask(request):
@@ -161,11 +160,11 @@ def addtask(request):
     
         task = task_form_post.save()
         student = Student.objects.get(user=request.user)
-        print(student)
+
         task.created_by.add(student)
         task.save()
-        create_schedule(request.user)
-        notify(request.user.username, "TEST TASK", "F**K YOU")
+        create_schedule(request.user.username)
+
         # notify.apply_async(args=[request.user.username, task.name, task.description], eta=task.scheduled_at)
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
@@ -177,17 +176,15 @@ def addtask(request):
 @login_required
 def update_task(request, pk):
     task = Task.objects.get(id=pk)
-    print(task)
     task_form = TaskForm(instance=task)
     if request.method == 'POST':
         
         task_form = TaskForm(request.POST, instance=task)
         task = task_form.save()
-        student = Student.objects.get(user=request.user)
-        print(student)
-        task.created_by.add(student)
+
         task.save()
-        create_schedule(request.user)
+        create_schedule(request.user.username)
+
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
             "success_msg" : f"Updated successfully"
@@ -198,7 +195,21 @@ def update_task(request, pk):
 @login_required
 def delete_task(request, pk):
     task = Task.objects.get(id=pk)
-    print(task)
+
+    if( GoogleAuth.objects.filter(user=request.user) and task.event_id):
+        gauth = request.user.gauth
+        refresh_token = gauth.refresh_token
+        chk, access_token = refresh_access_token(refresh_token)
+
+        if(chk):
+            print("Valid Credentials")
+            creds = create_creds(access_token, refresh_token)
+            delete_event(creds, task.event_id)
+
+        else:
+            print("User revoked the access to calender")
+            gauth.delete()
+
     task.delete()
     return HttpResponseRedirect("/managetasks")
 
@@ -215,3 +226,27 @@ def mark_undone(request, pk):
     task.status = False
     task.save()
     return HttpResponseRedirect("/managetasks")
+
+
+@login_required
+def google_auth(request):
+    if request.method == "POST":
+        return HttpResponse("Post method Not allowed for Google Auth !")
+    
+    if(request.GET.get("error")):
+        return HttpResponse("Please give the necesarry permission for the Application to work")
+    
+    code = request.GET["code"]
+    scope = request.GET["scope"]
+    
+    tokens = get_tokens(code)
+    print(tokens)
+    oauth = GoogleAuth(
+        user = request.user, 
+        access_token = tokens["access_token"],
+        refresh_token = tokens["refresh_token"],
+        scope = tokens["scope"],
+    )
+    oauth.save()
+    print(code, scope)
+    return HttpResponseRedirect("/")
