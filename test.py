@@ -8,11 +8,16 @@ from scheduler.util import (check_schedule, evaluate_schedule, plot_schedule,
 seed = 99
 
 # Define scheduling problem
-
+slope_loss = {
+    1 : 100,
+    2 : 200,
+    3 : 300,
+    4 : 400,
+}
 
 tasks = [
-    LinearDrop(duration=2, t_release=1, t_drop=3, l_drop=200, slope=1.5, name="Important Task"),
-    LinearDrop(duration=1, t_release=0, t_drop=3, l_drop=100, slope=1, name="Normal Task"),
+    LinearDrop(t_release=0, duration=2, t_drop=7, l_drop=100, slope=1, name="Important Task"),
+    LinearDrop(t_release=0, duration=2, t_drop=7, l_drop=100, slope=1, name="Important Task"),
 ]
 ch_avail = [0.0]
 
