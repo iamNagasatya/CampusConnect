@@ -32,7 +32,7 @@ def create_schedule(username):
     _tasks = [
         LinearDrop(
             duration=task.rel_duration, 
-            t_release=max(0, task.rel_deadline-task.rel_duration), 
+            t_release=task.rel_t_release, 
             t_drop=task.rel_deadline, 
             l_drop=task.loss, 
             slope=task.priority
@@ -50,19 +50,19 @@ def create_schedule(username):
         task.scheduled_at = sched
         task.save()
 
-    # if( GoogleAuth.objects.filter(user__username=username)):
-    #     gauth = GoogleAuth.objects.get(user__username=username)
-    #     refresh_token = gauth.refresh_token
-    #     chk, access_token = refresh_access_token(refresh_token)
+    if( GoogleAuth.objects.filter(user__username=username)):
+        gauth = GoogleAuth.objects.get(user__username=username)
+        refresh_token = gauth.refresh_token
+        chk, access_token = refresh_access_token(refresh_token)
 
-    #     if(chk):
-    #         print("Valid Credentials")
-    #         creds = create_creds(access_token, refresh_token)
-    #         batchPush(creds, tasks)
+        if(chk):
+            print("Valid Credentials")
+            creds = create_creds(access_token, refresh_token)
+            batchPush(creds, tasks)
             
-    #     else:
-    #         print("User revoked the access to calender")
-    #         gauth.delete()
+        else:
+            print("User revoked the access to calender")
+            gauth.delete()
 
 
 
@@ -199,19 +199,19 @@ def update_task(request, pk):
 def delete_task(request, pk):
     task = Task.objects.get(id=pk)
 
-    # if( GoogleAuth.objects.filter(user=request.user) and task.event_id):
-    #     gauth = request.user.gauth
-    #     refresh_token = gauth.refresh_token
-    #     chk, access_token = refresh_access_token(refresh_token)
+    if( GoogleAuth.objects.filter(user=request.user) and task.event_id):
+        gauth = request.user.gauth
+        refresh_token = gauth.refresh_token
+        chk, access_token = refresh_access_token(refresh_token)
 
-    #     if(chk):
-    #         print("Valid Credentials")
-    #         creds = create_creds(access_token, refresh_token)
-    #         delete_event(creds, task.event_id)
+        if(chk):
+            print("Valid Credentials")
+            creds = create_creds(access_token, refresh_token)
+            delete_event(creds, task.event_id)
 
-    #     else:
-    #         print("User revoked the access to calender")
-    #         gauth.delete()
+        else:
+            print("User revoked the access to calender")
+            gauth.delete()
 
     task.delete()
     return HttpResponseRedirect("/managetasks")
