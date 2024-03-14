@@ -97,3 +97,10 @@ class GoogleAuth(models.Model):
 
     def __str__(self):
         return f"{self.user.username}"
+    
+class Announcement(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=200)
+    scheduled = models.DateTimeField(null=True, blank=True)
+    users = models.ManyToManyField(User, related_name="tasks")
+    
