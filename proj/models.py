@@ -54,6 +54,7 @@ def get_now_with_hour():
 class Task(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
+    schedule_after = models.DateTimeField(default= get_now)
     deadline = models.DateTimeField(default= get_now_with_hour)
     scheduled_at = models.DateTimeField(null=True, blank=True)
     duration = models.DurationField(default="01:00:00")
@@ -68,6 +69,9 @@ class Task(models.Model):
     def rel_deadline(self):
         return max(0.0, (self.deadline - datetime.now(timezone.utc))/timedelta(seconds=60))
     
+    @property
+    def rel_t_release(self):
+        return max(0.0, (self.schedule_after - datetime.now(timezone.utc))/timedelta(seconds=60))
 
     @property
     def rel_duration(self):
@@ -80,10 +84,10 @@ class Task(models.Model):
     
     @property
     def loss(self):
-        return (2*self.is_important+1*self.has_intrest + 1)*1e6
+        return (2*self.is_important+1*self.has_intrest + 1)*1e9
     
     def __str__(self):
-        return f"{self.id} {self.name}"
+        return f"{self.name} deadline: {self.rel_deadline}\nt_release: {self.rel_t_release}\nduration: {self.rel_duration}"
 
 class GoogleAuth(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="gauth")

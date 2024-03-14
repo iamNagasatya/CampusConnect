@@ -32,14 +32,16 @@ def create_schedule(username):
     _tasks = [
         LinearDrop(
             duration=task.rel_duration, 
-            t_release=0, 
+            t_release=max(0, task.rel_deadline-task.rel_duration), 
             t_drop=task.rel_deadline, 
             l_drop=task.loss, 
             slope=task.priority
         )
         for task in tasks
     ]
-    sch = branch_bound_priority(_tasks, [0.0])["t"]
+    sol = branch_bound_priority(_tasks, [0.0])
+    print(sol)
+    sch = sol["t"]
     print(sch)
     for i, task in enumerate(tasks):
         td = timedelta(minutes=sch[i])
