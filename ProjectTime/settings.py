@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'ProjectTime.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': "timedb_lau7",
+        'NAME': "newdb",
         "USER": "iamnagasatya",
         "PASSWORD": "lwBGoH54EuNaod8qct02BgIhEYBPedz4",
         "HOST" : "dpg-cnhjg1i1hbls73cu5klg-a.singapore-postgres.render.com",

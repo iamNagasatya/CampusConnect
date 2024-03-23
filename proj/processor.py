@@ -1,10 +1,12 @@
-from proj.models import GoogleAuth
+from proj.models import GoogleAuth, Student
 
 
 def google_account_connected(request):
-    if request.user.is_authenticated:
+    user = request.user
+    if user.is_authenticated and not user.is_staff and not user.is_superuser:
         print("Authenticated user")
-        res = bool(GoogleAuth.objects.filter(user=request.user))
+        student = Student.objects.get(user__username=user.username) 
+        res = bool(student.gauth)
     else:
         print("Anonymous user")
         res = False
