@@ -21,39 +21,54 @@ from proj.google_auth import *
 
 
 
-def get_tasks(username, active=True):
-    student = Student.objects.get(user__username=username)
-    tasks = student.tasks.filter(status=False)
-    return [ task for task in tasks if(task.rel_deadline>0 if active else task.rel_deadline<0)]
-
 def create_schedule(username):
-    tasks = get_tasks(username)
+    student = Student.objects.get(user__username=username) #fetch all student tasks
+    tasks = student.tasks.filter(status=False) #uncompleted tasks
+    tasks =  list(filter(lambda task : task.active, tasks)) #filter active tasks out of uncompleted tasks
     
-    _tasks = [
-        LinearDrop(
-            duration=task.rel_duration, 
-            t_release=task.rel_t_release, 
-            t_drop=task.rel_deadline, 
-            l_drop=task.loss, 
-            slope=task.priority
+    _tasks = []
+    now = datetime.now(timezone.utc)
+    rel_now = now.hour*60 + now.minute
+
+    for task in tasks:
+        t_rel = max(rel_now, task.rel_t_release)
+        t_drop = task.rel_deadline
+        if task.deadline.date() != now.date():
+            t_rel = rel_now
+            t_drop = 23*60
+        ld = LinearDrop(
+            duration=task.rel_duration,
+            t_release=t_rel,
+            t_drop=t_drop, 
+            l_drop=task.loss,
+            slope=task.priority,
         )
-        for task in tasks
-    ]
-    sol = branch_bound_priority(_tasks, [0.0])
+        _tasks.append(ld)
+    
+
+    
+    sol = branch_bound_priority(_tasks, [ rel_now ])
     print(sol)
     sch = sol["t"]
     print(sch)
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
     for i, task in enumerate(tasks):
         td = timedelta(minutes=sch[i])
-        sched = datetime.now(timezone.utc) + td
+        sched = start_of_day + td
         print(sched)
         task.scheduled_at = sched
         task.save()
 
-    if( GoogleAuth.objects.filter(user__username=username)):
-        gauth = GoogleAuth.objects.get(user__username=username)
+    if(student.gauth):
+        gauth = student.gauth
+        chk = True
+        access_token = gauth.access_token
         refresh_token = gauth.refresh_token
-        chk, access_token = refresh_access_token(refresh_token)
+        if gauth.expired:
+            chk, access_token = refresh_access_token(refresh_token)
+            gauth.access_token = access_token
+            gauth.save()
 
         if(chk):
             print("Valid Credentials")
@@ -64,34 +79,31 @@ def create_schedule(username):
             print("User revoked the access to calender")
             gauth.delete()
 
+    return tasks
 
 
 @login_required
 def home(request):
-    student = Student.objects.get(user=request.user)
-    tasks = student.tasks.filter(status=False)
-    tasks = [ task for task in tasks if(task.rel_deadline>0)]
-    tasks.sort(key= lambda task : task.scheduled_at)
     create_schedule(request.user.username)
+    student = Student.objects.get(user=request.user) #fetch all student tasks
+    tasks = student.tasks.filter(status=False) #uncompleted tasks
+    tasks =  list(filter(lambda task : task.active, tasks)) #filter active tasks out of uncompleted tasks
+    tasks.sort(key= lambda task : task.scheduled_at)
+
     return render(request, "pages/home.html", {"tasks" : tasks})
 
 @login_required
 def managetasks(request):
-    
     student = Student.objects.get(user=request.user)
-
     tasks = student.tasks.all()
-    
     return render(request, "pages/managetasks.html", {"tasks" : tasks})
 
 @login_required
 def rescheduletasks(request):
-    student = Student.objects.get(user=request.user)
-    tasks = student.tasks.filter(status=False)
-
-    _tasks = [ task for task in tasks if(task.rel_deadline<0) ]
-    print(_tasks)
-    return render(request, "pages/rescheduletasks.html", {"tasks": _tasks})
+    student = Student.objects.get(user=request.user) #fetch all student tasks
+    tasks = student.tasks.filter(status=False) #uncompleted tasks
+    tasks =  filter(lambda task : not task.active, tasks)
+    return render(request, "pages/rescheduletasks.html", {"tasks": tasks})
 
 def register(request):
     if request.method == "POST":
@@ -107,7 +119,7 @@ def register(request):
             profile.user = user
 
             profile.save()
-            return HttpResponseRedirect("/")
+            return render(request, "pages/login.html", {"message" : "Registered Successfully"})
         else:
             print(user_form.errors, student_form.errors)
         
@@ -134,10 +146,10 @@ def login_user(request):
                 login(request, user)
                 return HttpResponseRedirect("/")
             else:
-                return HttpResponse("User not Active")
+                return render(request, "pages/login.html", {"message" : "User not Active"})
         else:
             print("someone tried to login and failed")
-            return HttpResponse("invalid login details supplied ")
+            return render(request, "pages/login.html", {"message" : "Invalid login details supplied"})
         
     return render(request, "pages/login.html")
 
@@ -145,7 +157,7 @@ def login_user(request):
 @login_required
 def logout_user(request):
     logout(request)
-    return HttpResponseRedirect("/login")
+    return render(request, "pages/login.html", {"message" : "User logged out successful"})
 
 @login_required
 def profile(request):
@@ -186,7 +198,7 @@ def update_task(request, pk):
         task = task_form.save()
 
         task.save()
-        create_schedule(request.user.username)
+        create_schedule(request.user.username, task.deadline)
 
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
@@ -197,12 +209,19 @@ def update_task(request, pk):
     
 @login_required
 def delete_task(request, pk):
+    student = Student.objects.get(user=request.user)
     task = Task.objects.get(id=pk)
 
-    if( GoogleAuth.objects.filter(user=request.user) and task.event_id):
-        gauth = request.user.gauth
+    if( student.gauth and task.event_id):
+        gauth = student.gauth
+        access_token = gauth.access_token
         refresh_token = gauth.refresh_token
-        chk, access_token = refresh_access_token(refresh_token)
+        chk = True
+
+        if gauth.expired:
+            chk, access_token = refresh_access_token(refresh_token)
+            gauth.access_token = access_token
+            gauth.save()
 
         if(chk):
             print("Valid Credentials")
@@ -213,7 +232,9 @@ def delete_task(request, pk):
             print("User revoked the access to calender")
             gauth.delete()
 
+    shed_dt = task.deadline
     task.delete()
+    create_schedule(request.user.username)
     return HttpResponseRedirect("/managetasks")
 
 @login_required
@@ -221,6 +242,7 @@ def mark_done(request, pk):
     task = Task.objects.get(id=pk)
     task.status = True
     task.save()
+    create_schedule(request.user.username)
     return HttpResponseRedirect("/managetasks")
 
 @login_required
@@ -228,11 +250,13 @@ def mark_undone(request, pk):
     task = Task.objects.get(id=pk)
     task.status = False
     task.save()
+    create_schedule(request.user.username)
     return HttpResponseRedirect("/managetasks")
 
 
 @login_required
 def google_auth(request):
+    student = Student.objects.get(user=request.user) 
     if request.method == "POST":
         return HttpResponse("Post method Not allowed for Google Auth !")
     
@@ -245,11 +269,12 @@ def google_auth(request):
     tokens = get_tokens(code)
     print(tokens)
     oauth = GoogleAuth(
-        user = request.user, 
         access_token = tokens["access_token"],
         refresh_token = tokens["refresh_token"],
         scope = tokens["scope"],
     )
     oauth.save()
+    student.gauth = oauth
+    student.save()
     print(code, scope)
     return HttpResponseRedirect("/")
