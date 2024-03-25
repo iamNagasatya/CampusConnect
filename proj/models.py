@@ -4,7 +4,11 @@ from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
 
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+
 # Create your models here.
+
+IST = ZoneInfo("Asia/Kolkata")
 
 class Branch(models.Model):
     name = models.CharField(max_length=100)
@@ -72,33 +76,43 @@ class Task(models.Model):
     event_id = models.CharField(max_length=200, null=True, blank=True)
     is_recurring = models.BooleanField(default=False)
     recurrence = RecurrenceField(include_dtstart=False, blank=True, null=True)
-
+    
     @staticmethod
-    def get_minutes(dt):
-        return dt.hour * 60 + dt.minute
-
-    @property
-    def active(self):
-        eroju = datetime.now(timezone.utc)
-        ninna = eroju - timedelta(days=1)
-        if self.is_recurring:
-            next_rec_day = self.recurrence.after(ninna, dtstart=ninna)
-            if next_rec_day and next_rec_day.date() == eroju.date():
-                print(self.name, eroju, self.deadline)
-                print("working", self.get_minutes(eroju),  self.get_minutes(self.deadline))
-                return self.get_minutes(eroju) < self.get_minutes(self.deadline)
-            return False
-
-        return datetime.now(timezone.utc) < self.deadline
-
+    def ist(dt):
+        return dt.astimezone(tz=IST)
+    
+    @staticmethod
+    def rel_minutes(dt):
+        return (dt - datetime.now(timezone.utc))/timedelta(seconds=60)
 
     @property
     def rel_deadline(self):
-        return self.get_minutes(self.deadline)
-    
+        return self.rel_minutes(self.deadline)
+
     @property
     def rel_t_release(self):
-        return self.get_minutes(self.schedule_after)
+        return self.rel_minutes(self.schedule_after)
+
+
+    @property
+    def active(self):
+        now = datetime.now(timezone.utc)
+        eroju = datetime.now(IST)
+        ninna = eroju - timedelta(days=1)
+        _deadline = self.ist(self.deadline)
+
+        if self.is_recurring:
+            next_rec_day = self.recurrence.after(ninna, dtstart=ninna)
+            if next_rec_day and next_rec_day.date() == eroju.date():
+                self.deadline = self.deadline.replace(year=now.year, month=now.month, day=now.day)
+                self.schedule_after = self.schedule_after.replace(year=now.year, month=now.month, day=now.day)
+                print("Active rec", self.name)
+                self.save()
+            else:
+                return False
+        res = now < self.deadline
+        print("res", res)
+        return res
 
     @property
     def rel_duration(self):

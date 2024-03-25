@@ -26,37 +26,25 @@ def create_schedule(username):
     tasks = student.tasks.filter(status=False) #uncompleted tasks
     tasks =  list(filter(lambda task : task.active, tasks)) #filter active tasks out of uncompleted tasks
     print(tasks)
-    _tasks = []
-    now = datetime.now(timezone.utc)
-    rel_now = now.hour*60 + now.minute
-
-    for task in tasks:
-        t_rel = max(rel_now, task.rel_t_release)
-        t_drop = task.rel_deadline
-        if not task.is_recurring and task.deadline.date() != now.date():
-            t_rel = rel_now
-            t_drop = 23*60
-        ld = LinearDrop(
-            duration=task.rel_duration,
-            t_release=t_rel,
-            t_drop=t_drop, 
-            l_drop=task.loss,
-            slope=task.priority,
+    
+    _tasks = [
+        LinearDrop(
+            duration=task.rel_duration, 
+            t_release=task.rel_t_release if(task.schedule_after > datetime.now(timezone.utc)) else 0, 
+            t_drop=task.rel_deadline, 
+            l_drop=task.loss, 
+            slope=task.priority
         )
-        _tasks.append(ld)
+        for task in tasks
+    ]
     
-
-    
-    sol = branch_bound_priority(_tasks, [ rel_now ])
-    print(sol)
+    sol = branch_bound_priority(_tasks, [0.0])
     sch = sol["t"]
     print(sch)
-    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     for i, task in enumerate(tasks):
         td = timedelta(minutes=sch[i])
-        sched = start_of_day + td
-        print(sched)
+        sched = datetime.now(timezone.utc) + td
         task.scheduled_at = sched
         task.save()
 
@@ -74,7 +62,7 @@ def create_schedule(username):
             print("Valid Credentials")
             creds = create_creds(access_token, refresh_token)
             batchPush(creds, tasks)
-            
+
         else:
             print("User revoked the access to calender")
             gauth.delete()
@@ -84,7 +72,11 @@ def create_schedule(username):
 
 @login_required
 def home(request):
-    create_schedule(request.user.username)
+    if request.method == "POST":
+        print("post update sched")
+        tasks = create_schedule(request.user.username)
+        return render(request, "pages/home.html", {"tasks" : tasks})
+    
     student = Student.objects.get(user=request.user) #fetch all student tasks
     tasks = student.tasks.filter(status=False) #uncompleted tasks
     tasks =  list(filter(lambda task : task.active, tasks)) #filter active tasks out of uncompleted tasks
