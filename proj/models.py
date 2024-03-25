@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from recurrence.fields import RecurrenceField
+
 from datetime import datetime, timedelta, timezone
 # Create your models here.
 
@@ -45,26 +47,14 @@ class Student(models.Model):
 
 
 
-class Manager(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    
-    MANAGERMENT_CHOICES = (("S", "Section Level"), ("B", "Branch Level"), ("C", "College Level"))
-    section = models.CharField(
-        max_length=1,
-        choices=MANAGERMENT_CHOICES,
-        default="S",
-    )
-
-    def __str__(self):
-        return f"{self.user.username} {self.user.get_full_name()}"
-
-
 
 def get_now():
     return (datetime.now(timezone.utc)).replace(second=0, microsecond=0)
 
 def get_now_with_hour():
     return (datetime.now(timezone.utc)+timedelta(hours=1)).replace(second=0, microsecond=0)
+
+
 
 
 class Task(models.Model):
@@ -80,20 +70,35 @@ class Task(models.Model):
     status = models.BooleanField(default=False)
     created_by = models.ManyToManyField(Student, related_name="tasks")
     event_id = models.CharField(max_length=200, null=True, blank=True)
+    is_recurring = models.BooleanField(default=False)
+    recurrence = RecurrenceField(include_dtstart=False, blank=True, null=True)
+
+    @staticmethod
+    def get_minutes(dt):
+        return dt.hour * 60 + dt.minute
 
     @property
     def active(self):
-        rem = self.deadline - datetime.now(timezone.utc)
-        return rem.seconds > 0
+        eroju = datetime.now(timezone.utc)
+        ninna = eroju - timedelta(days=1)
+        if self.is_recurring:
+            next_rec_day = self.recurrence.after(ninna, dtstart=ninna)
+            if next_rec_day and next_rec_day.date() == eroju.date():
+                print(self.name, eroju, self.deadline)
+                print("working", self.get_minutes(eroju),  self.get_minutes(self.deadline))
+                return self.get_minutes(eroju) < self.get_minutes(self.deadline)
+            return False
+
+        return datetime.now(timezone.utc) < self.deadline
 
 
     @property
     def rel_deadline(self):
-        return self.deadline.hour * 60 + self.deadline.minute
+        return self.get_minutes(self.deadline)
     
     @property
     def rel_t_release(self):
-        return self.schedule_after.hour * 60 + self.schedule_after.minute
+        return self.get_minutes(self.schedule_after)
 
     @property
     def rel_duration(self):

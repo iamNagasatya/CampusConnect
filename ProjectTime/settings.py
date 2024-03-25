@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "proj",
     'django.contrib.admin',
     "webpush",
+    "recurrence",
 ]
 
 MIDDLEWARE = [

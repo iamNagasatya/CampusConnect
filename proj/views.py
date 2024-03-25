@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
-from proj.models import Student, Branch, Manager, Task, GoogleAuth
+from proj.models import Student, Branch, Task, GoogleAuth
 from proj.forms import UserForm, StudentForm, TaskForm
 
 from datetime import datetime, timedelta, timezone
@@ -25,7 +25,7 @@ def create_schedule(username):
     student = Student.objects.get(user__username=username) #fetch all student tasks
     tasks = student.tasks.filter(status=False) #uncompleted tasks
     tasks =  list(filter(lambda task : task.active, tasks)) #filter active tasks out of uncompleted tasks
-    
+    print(tasks)
     _tasks = []
     now = datetime.now(timezone.utc)
     rel_now = now.hour*60 + now.minute
@@ -33,7 +33,7 @@ def create_schedule(username):
     for task in tasks:
         t_rel = max(rel_now, task.rel_t_release)
         t_drop = task.rel_deadline
-        if task.deadline.date() != now.date():
+        if not task.is_recurring and task.deadline.date() != now.date():
             t_rel = rel_now
             t_drop = 23*60
         ld = LinearDrop(
@@ -102,7 +102,7 @@ def managetasks(request):
 def rescheduletasks(request):
     student = Student.objects.get(user=request.user) #fetch all student tasks
     tasks = student.tasks.filter(status=False) #uncompleted tasks
-    tasks =  filter(lambda task : not task.active, tasks)
+    tasks =  list(filter(lambda task : not task.active, tasks))
     return render(request, "pages/rescheduletasks.html", {"tasks": tasks})
 
 def register(request):
@@ -198,7 +198,7 @@ def update_task(request, pk):
         task = task_form.save()
 
         task.save()
-        create_schedule(request.user.username, task.deadline)
+        create_schedule(request.user.username)
 
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 

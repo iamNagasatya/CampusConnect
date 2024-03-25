@@ -20,7 +20,18 @@ class TaskForm(forms.ModelForm):
 
     class Meta:
         model = Task
-        fields = ("name", "description", "schedule_after", "deadline", "duration", "is_important", "is_fixed", "has_intrest")
+        fields = (
+            "name", 
+            "description", 
+            "schedule_after", 
+            "deadline", 
+            "duration", 
+            "is_important", 
+            "is_fixed", 
+            "has_intrest", 
+            "is_recurring",
+            "recurrence"
+        )
         widgets = {
             "deadline": forms.DateTimeInput(attrs={'type':'datetime-local'}),
             "schedule_after": forms.DateTimeInput(attrs={'type':'datetime-local'}),

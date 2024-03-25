@@ -1,5 +1,5 @@
 from django.contrib import admin
-from proj.models import Student, Branch, Manager, Task, GoogleAuth, Announcement
+from proj.models import Student, Branch, Task, GoogleAuth, Announcement
 
 from proj.tasks import notify
 
@@ -24,6 +24,5 @@ admin.site.register(Announcement, AnnouncementAdmin)
 
 admin.site.register(Student)
 admin.site.register(Branch)
-admin.site.register(Manager)
 admin.site.register(Task)
 admin.site.register(GoogleAuth)
