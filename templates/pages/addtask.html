@@ -2,6 +2,8 @@
 
 {% block content %}
 
+{{task_form.media}}
+
 <div class="container-fluid py-4">
     <p class="text-success">
         {{success_msg}}
@@ -10,6 +12,9 @@
         <form method="POST">
             {% csrf_token %}
             {{task_form.as_p}}
+
+            <br>
+            <br>
     
             <div><button type="submit"> Submit </button></div>
         </form>

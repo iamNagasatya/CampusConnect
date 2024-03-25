@@ -8,40 +8,46 @@
       <div class="card mb-4">
         <div class="card-header pb-0">
           <h6>Scheduled Tasks</h6>
+          <form method="post"> {% csrf_token %} <button type="submit" class="btn btn-primary">Update Schedule</button></form>
           <p class="text-success">
             {{msg}}
         </p>
         </div>
         <div class="card-body px-0 pt-0 pb-2">
           {% if tasks %}
-          <div class="table-responsive p-0">
-            <table class="table align-items-center mb-0">
+          <div class="table-responsive">
+            <table class="table  align-items-center">
               <thead>
                 <tr>
                   <th
                     class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                    scope="col"
                   >
                     Sl. No.
                   </th>
                   <th
                     class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                    scope="col"
                   >
                     Task Name
                   </th>
                   <th
                     class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                    scope="col"
                   >
-                    Start after & <br> Duration & <br> Deadline
+                    Duration & Deadline
                   </th>
 
                   <th
                     class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                    scope="col"
                   >
                     Scheduled at
                   </th>
                   
                   <th
                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                    scope="col"
                   >
                     Priority
                   </th>
@@ -49,10 +55,11 @@
                   
                   <th
                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                    scope="col"
                   >
                     Status
                   </th>
-                  <th class="text-secondary opacity-7"></th>
+
                 </tr>
               </thead>
               <tbody>
@@ -83,7 +90,7 @@
                     </div>
                   </td>
                   <td>
-                    <p class="text-xs font-weight-bold mb-0">{{task.schedule_after}}</p>
+                    <!-- <p class="text-xs font-weight-bold mb-0">{{task.schedule_after}}</p> -->
                     <p class="text-xs text-secondary mb-0">{{task.duration}}</p>
                     <p class="text-xs font-weight-bold mb-0">{{task.deadline}}</p>
                   </td>
