@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -156,3 +157,5 @@ WEBPUSH_SETTINGS = {
 CELERY_TIMEZONE = 'Asia/Kolkata'
 CELERY_BROKER_URL = "redis://default:PHTn8NZcrlXCkiVKyY1yP7Arsxk0TLsM@redis-18726.c325.us-east-1-4.ec2.cloud.redislabs.com:18726/0"
 CELERY_RESULT_BACKEND = "redis://default:PHTn8NZcrlXCkiVKyY1yP7Arsxk0TLsM@redis-18726.c325.us-east-1-4.ec2.cloud.redislabs.com:18726/0"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
