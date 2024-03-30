@@ -16,8 +16,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Expose a port for the API
-EXPOSE 8000
+EXPOSE 80
 # Collect static files
 RUN python manage.py collectstatic --noinput
 # Specify the command to run the application
-CMD ["gunicorn", "--bind", ":8000", "--workers", "3", "ProjectTime.wsgi"]
+CMD ["gunicorn", "--bind", ":80", "ProjectTime.wsgi"]
