@@ -1,0 +1,47 @@
+name: Trigger auto deployment for plan24hrs
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/plan24hrs-AutoDeployTrigger-36892751-203e-4373-8f50-a6c7ee2ccdd5.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.PLAN24HRS_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.PLAN24HRS_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.PLAN24HRS_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: iamnagasatya.azurecr.io
+          registryUsername: ${{ secrets.PLAN24HRS_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.PLAN24HRS_REGISTRY_PASSWORD }}
+          containerAppName: plan24hrs
+          resourceGroup: LEARTNIT
+          imageToBuild: iamnagasatya.azurecr.io/plan24hrs:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
