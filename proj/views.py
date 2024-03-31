@@ -190,7 +190,7 @@ def update_task(request, pk):
         task = task_form.save()
 
         task.save()
-        create_schedule(request.user.username)
+        create_schedule(request.user.username, task.deadline)
 
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
