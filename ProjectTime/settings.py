@@ -81,10 +81,10 @@ WSGI_APPLICATION = 'ProjectTime.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': "newdb",
-        "USER": "iamnagasatya",
-        "PASSWORD": "lwBGoH54EuNaod8qct02BgIhEYBPedz4",
-        "HOST" : "dpg-cnhjg1i1hbls73cu5klg-a.singapore-postgres.render.com",
+        'NAME': "azuredb",
+        "USER": "admindb",
+        "PASSWORD": "Iamnagasatya@145",
+        "HOST" : "iamnagasatya.postgres.database.azure.com",
         "PORT" : 5432,
     }
 }
