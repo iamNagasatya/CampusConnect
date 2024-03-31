@@ -16,4 +16,6 @@ urlpatterns = [
     path("login", views.login_user, name="login"),
     path("logout", views.logout_user, name="logout"),
     path("google_auth", views.google_auth, name="google_auth"),
+    path("terms-of-service", views.terms, name="terms"),
+    path("privacy-policy", views.privacy, name="privacy"),
 ]

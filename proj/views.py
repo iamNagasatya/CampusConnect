@@ -75,6 +75,7 @@ def home(request):
     if request.method == "POST":
         print("post update sched")
         tasks = create_schedule(request.user.username)
+        tasks.sort(key= lambda task : task.scheduled_at)
         return render(request, "pages/home.html", {"tasks" : tasks})
     
     student = Student.objects.get(user=request.user) #fetch all student tasks
@@ -93,7 +94,7 @@ def managetasks(request):
 @login_required
 def rescheduletasks(request):
     student = Student.objects.get(user=request.user) #fetch all student tasks
-    tasks = student.tasks.filter(status=False) #uncompleted tasks
+    tasks = student.tasks.filter(status=False, is_recurring=False) #uncompleted tasks
     tasks =  list(filter(lambda task : not task.active, tasks))
     return render(request, "pages/rescheduletasks.html", {"tasks": tasks})
 
@@ -190,7 +191,7 @@ def update_task(request, pk):
         task = task_form.save()
 
         task.save()
-        create_schedule(request.user.username, task.deadline)
+        create_schedule(request.user.username)
 
         return render(request, "pages/addtask.html", {
             "task_form" : task_form, 
@@ -224,7 +225,6 @@ def delete_task(request, pk):
             print("User revoked the access to calender")
             gauth.delete()
 
-    shed_dt = task.deadline
     task.delete()
     create_schedule(request.user.username)
     return HttpResponseRedirect("/managetasks")
@@ -270,3 +270,10 @@ def google_auth(request):
     student.save()
     print(code, scope)
     return HttpResponseRedirect("/")
+
+
+def privacy(request):
+    return render(request, "privacy-policy.html")
+
+def terms(request):
+    return render(request, "terms-of-service.html")
