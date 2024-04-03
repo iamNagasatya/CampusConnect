@@ -8,24 +8,27 @@ This repository contains UML diagrams represented as images.
 
 ## Class Diagram
 
-![Class Diagram](ClassDiagramIBMROSE.PNG)
+![Class Diagram](ClassDiagram.PNG)
 
-## Sequence Diagram 1
-![Sequence Diagram 1](SequenceDiagram1.png)
+## Sequence Diagram Registration
+![Sequence Diagram 1](SequenceDiagramRegistration.png)
 
-## Sequence Diagram 2
-![Sequence Diagram 2](SequenceDiagram2.png)
+## Sequence Login Diagram
+![Sequence Diagram 2](SequenceLoginDiagram.png)
 
-## Sequence Diagram 3
-![Sequence Diagram 3](SequenceDiagram3.png)
+## Sequence Diagram Add Task
+![Sequence Diagram 3](SequenceDiagramAddTask.jpg)
+
+## Sequence Diagram Manage Tasks
+![Sequence Diagram 4](SequenceDiagramManageTasks.jpg)
+
+## Sequence Diagram Reschedule Tasks
+![Sequence Diagram 5](SequenceDiagramRescheduleTasks.jpg)
 
 ## Collaboration Diagram
 
-![collab diagram](CollaborationDiagram.png)
+![collab diagram](CollaborationDiagram.jpg)
 
-## Activity Diagram
-
-![Activity Diagram](ActivityDiagram.png)
 
 ## Component Diagram
 
@@ -34,7 +37,3 @@ This repository contains UML diagrams represented as images.
 ## Deployment Diagram
 
 ![Deployment Diagram](DeploymentDiagram.png)
-
-## StateChart Diagram
-
-![StateChart Diagram](StateChart.png)
