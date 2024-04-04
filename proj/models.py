@@ -115,7 +115,10 @@ class Task(models.Model):
                 self.save()
                 return eroju < _deadline
             else:
+                _deadline = _deadline.replace(day=next_rec_day.day, month=next_rec_day.month, year=next_rec_day.year)
+                self.deadline = _deadline.astimezone(tz=IST)
                 self.status = False
+                self.save() 
                 return False
         
         if self.status:
