@@ -81,9 +81,9 @@ class Task(models.Model):
     def ist(dt):
         return dt.astimezone(tz=IST)
     
-    @staticmethod
-    def rel_minutes(dt):
-        return (dt - datetime.now(timezone.utc))/timedelta(seconds=60)
+    def rel_minutes(self, dt):
+        dt = self.ist(dt)
+        return dt.hour * 60 + dt.minute
 
     @property
     def rel_deadline(self):
@@ -98,20 +98,31 @@ class Task(models.Model):
     def active(self):
         now = datetime.now(timezone.utc)
         eroju = datetime.now(IST)
-        ninna = eroju - timedelta(days=1)
+        ninna = self.ist(self.schedule_after) - timedelta(days=1)
+
         _deadline = self.ist(self.deadline)
 
         if self.is_recurring:
             next_rec_day = self.recurrence.after(ninna, dtstart=ninna)
+            print("Next day", next_rec_day, self.name, self.description)
             if next_rec_day and next_rec_day.date() == eroju.date():
-                self.deadline = self.deadline.replace(year=now.year, month=now.month, day=now.day)
-                self.schedule_after = self.schedule_after.replace(year=now.year, month=now.month, day=now.day)
-                print("Active rec", self.name)
+                print("Recurrent Active task", self.name)
+                if self.status:
+                    return False
+
+                _deadline = _deadline.replace(day=eroju.day, month=eroju.month, year=eroju.year)
+                self.deadline = _deadline.astimezone(tz=IST)
                 self.save()
+                return eroju < _deadline
             else:
+                self.status = False
                 return False
+        
+        if self.status:
+            return False
+
         res = now < self.deadline
-        print("res", res)
+        print(self.name, res)
         return res
 
     @property
@@ -128,9 +139,16 @@ class Task(models.Model):
     @property
     def loss(self):
         return self.priority * 1500
+
+    def update_shed(self, rel_min):
+        present_ist = datetime.now(IST)
+        present_ist = present_ist.replace(hour = rel_min//60, minute = rel_min%60, second=0, microsecond=0)
+        self.scheduled_at = present_ist.astimezone(timezone.utc)
+        
+        self.save()
     
     def __str__(self):
-        return f"{self.name} deadline: {self.rel_deadline:.2f} t_release: {self.rel_t_release:.2f} duration: {self.rel_duration:.2f}"
+        return f"{self.id} {self.name} deadline: {self.rel_deadline:.2f} t_release: {self.rel_t_release:.2f} duration: {self.rel_duration:.2f}"
 
 
     

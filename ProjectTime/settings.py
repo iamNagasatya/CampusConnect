@@ -67,6 +67,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'proj.processor.google_account_connected',
+                'proj.processor.get_announcements',
             ],
         },
     },

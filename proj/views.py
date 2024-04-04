@@ -12,25 +12,30 @@ from datetime import datetime, timedelta, timezone
 import heapq
 
 from scheduler.tasks import LinearDrop
-from scheduler.algorithms import branch_bound_priority
+from scheduler.algorithms import brute_force
 
 from proj.tasks import notify
 from webpush import send_user_notification
 
 from proj.google_auth import *
+from zoneinfo import ZoneInfo
 
 
+IST = ZoneInfo("Asia/Kolkata")
 
 def create_schedule(username):
     student = Student.objects.get(user__username=username) #fetch all student tasks
-    tasks = student.tasks.filter(status=False) #uncompleted tasks
+    tasks = student.tasks.all() #uncompleted tasks
     tasks =  list(filter(lambda task : task.active, tasks)) #filter active tasks out of uncompleted tasks
     print(tasks)
+
+    now = datetime.now(IST)
+    rel_now = now.hour*60 + now.minute
     
     _tasks = [
         LinearDrop(
             duration=task.rel_duration, 
-            t_release=task.rel_t_release if(task.schedule_after > datetime.now(timezone.utc)) else 0, 
+            t_release=task.rel_t_release, 
             t_drop=task.rel_deadline, 
             l_drop=task.loss, 
             slope=task.priority
@@ -38,15 +43,16 @@ def create_schedule(username):
         for task in tasks
     ]
     
-    sol = branch_bound_priority(_tasks, [0.0])
+    sol = brute_force(_tasks, [rel_now])
     sch = sol["t"]
     print(sch)
 
+
+    print(rel_now)
+
     for i, task in enumerate(tasks):
-        td = timedelta(minutes=sch[i])
-        sched = datetime.now(timezone.utc) + td
-        task.scheduled_at = sched
-        task.save()
+        task.update_shed(int(sch[i]))
+        
 
     if(student.gauth):
         gauth = student.gauth
@@ -94,9 +100,17 @@ def managetasks(request):
 @login_required
 def rescheduletasks(request):
     student = Student.objects.get(user=request.user) #fetch all student tasks
-    tasks = student.tasks.filter(status=False, is_recurring=False) #uncompleted tasks
+    tasks = student.tasks.filter(status=False) #uncompleted tasks
     tasks =  list(filter(lambda task : not task.active, tasks))
-    return render(request, "pages/rescheduletasks.html", {"tasks": tasks})
+    eroju = datetime.now(IST)
+    _tasks = []
+    for task in tasks:
+        if task.is_recurring:
+            if task.ist(task.deadline).date() == eroju.date():
+                _tasks.append(task)
+        else:
+            _tasks.append(task)
+    return render(request, "pages/rescheduletasks.html", {"tasks": _tasks})
 
 def register(request):
     if request.method == "POST":
@@ -161,7 +175,6 @@ def profile(request):
 
 @login_required
 def addtask(request):
-    task_form = TaskForm()
     if request.method == 'POST':
         
         task_form_post = TaskForm(request.POST)
@@ -178,7 +191,15 @@ def addtask(request):
             "task_form" : task_form, 
             "success_msg" : f"Task added successfully"
         })
-        
+    
+    task_form = TaskForm()
+    copy_id = request.GET.get("copy_id")
+    if copy_id:
+        task = Task.objects.get(id=copy_id)
+        task.is_recurring = False
+        task.recurrence = None
+        task_form = TaskForm(instance=task)
+    
     return render(request, "pages/addtask.html", {"task_form": task_form})
     
 @login_required
@@ -198,6 +219,43 @@ def update_task(request, pk):
             "success_msg" : f"Updated successfully"
         })
         
+    return render(request, "pages/addtask.html", {"task_form": task_form})
+
+@login_required
+def reschedule_recurrent_task(request, pk):
+    task = Task.objects.get(id=pk)
+
+    if request.method == 'POST':
+        
+        task_form = TaskForm(request.POST)
+        print(task_form)
+        task_new = task_form.save(commit=False)
+        if task_new.is_recurring or task_new.recurrence:
+            print("Task recurrece stored", task.recurrence)
+            return render(request, "pages/addtask.html", {
+                "task_form" : task_form, 
+                "success_msg" : f"Rescheduling recurrent task cannot be recurrent !"
+            }) 
+        task_new.save()
+        student = Student.objects.get(user=request.user)
+        task_new.created_by.add(student)
+        task_new.save()
+
+        task.schedule_after = task.schedule_after + timedelta(days=1)
+        task.deadline = task.deadline + timedelta(days=1)
+        task.save()
+
+        print("New task", task_new.id)
+        create_schedule(request.user.username)
+
+        return render(request, "pages/addtask.html", {
+            "task_form" : task_form, 
+            "success_msg" : f"Task Rescheduled successfully"
+        })
+    
+    task.is_recurring = False
+    task.recurrence = None
+    task_form = TaskForm(instance=task)
     return render(request, "pages/addtask.html", {"task_form": task_form})
     
 @login_required
@@ -235,7 +293,10 @@ def mark_done(request, pk):
     task.status = True
     task.save()
     create_schedule(request.user.username)
-    return HttpResponseRedirect("/managetasks")
+    redirect = request.GET.get("next")
+    if redirect:
+        return HttpResponseRedirect(redirect)
+    return HttpResponseRedirect("/")
 
 @login_required
 def mark_undone(request, pk):
@@ -243,7 +304,10 @@ def mark_undone(request, pk):
     task.status = False
     task.save()
     create_schedule(request.user.username)
-    return HttpResponseRedirect("/managetasks")
+    redirect = request.GET.get("next")
+    if redirect:
+        return HttpResponseRedirect(redirect)
+    return HttpResponseRedirect("/")
 
 
 @login_required

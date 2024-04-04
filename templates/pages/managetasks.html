@@ -94,7 +94,7 @@
                     >
                   </td>
                   <td class="align-middle text-center text-sm">
-                    {% if not task.status%} <a class="badge badge-sm bg-info" href="/mark_done/{{task.id}}"> Mark Completed</a> {% else %} <a class="badge badge-sm bg-danger" href="/mark_undone/{{task.id}}"> Mark Not Completed</a> {% endif %}
+                    {% if not task.status%} <a class="badge badge-sm bg-info" href="/mark_done/{{task.id}}?next=/managetasks"> Mark Completed</a> {% else %} <a class="badge badge-sm bg-danger" href="/mark_undone/{{task.id}}?next=/managetasks"> Mark Not Completed</a> {% endif %}
      
                   </td>
                   <td class="align-middle text-center">

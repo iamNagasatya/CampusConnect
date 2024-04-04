@@ -6,6 +6,7 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("addtask", views.addtask, name="addtask"),
     path("update_task/<str:pk>", views.update_task, name="update_task"),
+    path("reschedule_recurrent_task/<str:pk>", views.reschedule_recurrent_task, name="reschedule_recurrent_task"),
     path("delete_task/<str:pk>", views.delete_task, name="delete_task"),
     path("mark_done/<str:pk>", views.mark_done, name="mark_done"),
     path("mark_undone/<str:pk>", views.mark_undone, name="mark_undone"),
@@ -18,4 +19,5 @@ urlpatterns = [
     path("google_auth", views.google_auth, name="google_auth"),
     path("terms-of-service", views.terms, name="terms"),
     path("privacy-policy", views.privacy, name="privacy"),
+
 ]

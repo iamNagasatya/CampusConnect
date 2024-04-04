@@ -20,4 +20,4 @@ EXPOSE 80
 # Collect static files
 RUN python manage.py collectstatic --noinput
 # Specify the command to run the application
-CMD ["gunicorn", "--bind", ":80", "ProjectTime.wsgi"]
+CMD ./start.sh

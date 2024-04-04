@@ -94,7 +94,7 @@
                     >
                   </td>
                   <td class="align-middle text-center text-sm">
-                    {% if not task.status%} <a class="badge badge-sm bg-info" href="/mark_done/{{task.id}}"> Mark Completed</a> {% else %} <a class="badge badge-sm bg-danger" href="/mark_undone/{{task.id}}"> Mark Not Completed</a> {% endif %}
+                    {% if not task.status%} <a class="badge badge-sm bg-info" href="/mark_done/{{task.id}}?next=/rescheduletasks"> Mark Completed</a> {% else %} <a class="badge badge-sm bg-danger" href="/mark_undone/{{task.id}}?next=/rescheduletasks"> Mark Not Completed</a> {% endif %}
      
                   </td>
                   <td class="align-middle text-center">
@@ -107,7 +107,7 @@
                   </td>
                   <td class="align-middle">
                     <a
-                      href="/update_task/{{task.id}}"
+                      href="/reschedule_recurrent_task/{{task.id}}"
                       class="text-secondary font-weight-bold text-xs"
                       data-toggle="tooltip"
                       data-original-title="Edit user"

@@ -36,4 +36,5 @@ class TaskForm(forms.ModelForm):
             "deadline": forms.DateTimeInput(attrs={'type':'datetime-local'}),
             "schedule_after": forms.DateTimeInput(attrs={'type':'datetime-local'}),
         }
+        
 
