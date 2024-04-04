@@ -175,6 +175,7 @@ def profile(request):
 
 @login_required
 def addtask(request):
+    task_form = TaskForm()
     if request.method == 'POST':
         
         task_form_post = TaskForm(request.POST)
@@ -191,15 +192,7 @@ def addtask(request):
             "task_form" : task_form, 
             "success_msg" : f"Task added successfully"
         })
-    
-    task_form = TaskForm()
-    copy_id = request.GET.get("copy_id")
-    if copy_id:
-        task = Task.objects.get(id=copy_id)
-        task.is_recurring = False
-        task.recurrence = None
-        task_form = TaskForm(instance=task)
-    
+        
     return render(request, "pages/addtask.html", {"task_form": task_form})
     
 @login_required
