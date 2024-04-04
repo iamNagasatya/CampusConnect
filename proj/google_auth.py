@@ -16,7 +16,7 @@ def get_tokens(authcode):
         "client_id" : client_id,
         "client_secret" : client_secret,
         "grant_type" : "authorization_code",
-        "redirect_uri" : "http://localhost:8000/google_auth"
+        "redirect_uri" : "https://plan24hrs.nagasatya.in/google_auth"
     }
     resp = requests.post(url, data=data)
 
