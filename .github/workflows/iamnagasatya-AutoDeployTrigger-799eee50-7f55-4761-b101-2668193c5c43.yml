@@ -35,7 +35,7 @@ jobs:
           registryPassword: ${{ secrets.IAMNAGASATYA_REGISTRY_PASSWORD }}
           containerAppName: iamnagasatya
           resourceGroup: LEARTNIT
-          imageToBuild: registry.hub.docker.com/plan24hrs:${{ github.sha }}
+          imageToBuild: registry.hub.docker.com/iamnagasatya/plan24hrs:${{ github.sha }}
           
             
 
