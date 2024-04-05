@@ -86,7 +86,7 @@ def home(request):
     
     student = Student.objects.get(user=request.user) #fetch all student tasks
     tasks = student.tasks.filter(status=False) #uncompleted tasks
-    tasks =  list(filter(lambda task : task.active, tasks)) #filter active tasks out of uncompleted tasks
+    tasks =  list(filter(lambda task : task.active and task.scheduled_at, tasks)) #filter active tasks out of uncompleted tasks
     tasks.sort(key= lambda task : task.scheduled_at)
 
     return render(request, "pages/home.html", {"tasks" : tasks})

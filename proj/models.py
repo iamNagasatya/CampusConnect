@@ -98,13 +98,16 @@ class Task(models.Model):
     def active(self):
         now = datetime.now(timezone.utc)
         eroju = datetime.now(IST)
-        ninna = self.ist(self.schedule_after) - timedelta(days=1)
+        
 
         _deadline = self.ist(self.deadline)
 
+        dd = datetime.combine(eroju.date(), datetime.min.time())
+
         if self.is_recurring:
-            next_rec_day = self.recurrence.after(ninna, dtstart=ninna)
+            next_rec_day = self.recurrence.after(dd)
             print("Next day", next_rec_day, self.name, self.description)
+            print()
             if next_rec_day and next_rec_day.date() == eroju.date():
                 print("Recurrent Active task", self.name)
                 if self.status:
