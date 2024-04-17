@@ -1,0 +1,43 @@
+name: Trigger auto deployment for iamnagasatya
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/iamnagasatya-AutoDeployTrigger-1670401e-073f-4d91-b53d-f55f6e9e56af.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.IAMNAGASATYA_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: hub.docker.com
+          registryUsername: ${{ secrets.IAMNAGASATYA_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.IAMNAGASATYA_REGISTRY_PASSWORD }}
+          containerAppName: iamnagasatya
+          resourceGroup: LEARTNIT
+          imageToBuild: hub.docker.com/iamnagasatya/plan24hrs:${{ github.sha }}
+          
+            
+
+     
+
