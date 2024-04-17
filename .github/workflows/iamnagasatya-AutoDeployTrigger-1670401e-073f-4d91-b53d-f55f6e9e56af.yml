@@ -35,7 +35,7 @@ jobs:
           registryPassword: ${{ secrets.IAMNAGASATYA_REGISTRY_PASSWORD }}
           containerAppName: iamnagasatya
           resourceGroup: LEARTNIT
-          imageToBuild: iamnagasatya/iamnagasatya/plan24hrs:${{ github.sha }}
+          imageToBuild: iamnagasatya/plan24hrs:${{ github.sha }}
           
             
 
