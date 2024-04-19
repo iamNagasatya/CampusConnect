@@ -93,6 +93,14 @@ class Task(models.Model):
     def rel_t_release(self):
         return self.rel_minutes(self.schedule_after)
 
+    @property
+    def has_recurrence_today(self):
+        eroju = datetime.now(IST)
+        dd = datetime.combine(eroju.date(), datetime.min.time())
+        next_rec_day = self.recurrence.after(dd)
+        if next_rec_day and next_rec_day.date() == eroju.date():
+            return True
+        return False
 
     @property
     def active(self):
@@ -154,7 +162,7 @@ class Task(models.Model):
         self.save()
     
     def __str__(self):
-        return f"{self.id} {self.name} deadline: {self.rel_deadline:.2f} t_release: {self.rel_t_release:.2f} duration: {self.rel_duration:.2f}"
+        return f"{self.id} {self.name} {self.description}"
 
 
     

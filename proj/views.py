@@ -103,13 +103,8 @@ def rescheduletasks(request):
     tasks = student.tasks.filter(status=False) #uncompleted tasks
     tasks =  list(filter(lambda task : not task.active, tasks))
     eroju = datetime.now(IST)
-    _tasks = []
-    for task in tasks:
-        if task.is_recurring:
-            if task.ist(task.deadline).date() == eroju.date():
-                _tasks.append(task)
-        else:
-            _tasks.append(task)
+    _tasks = [ task for task in tasks if(not task.is_recurring or task.has_recurrence_today)]
+    
     return render(request, "pages/rescheduletasks.html", {"tasks": _tasks})
 
 def register(request):
