@@ -109,10 +109,13 @@ class Task(models.Model):
         
 
         _deadline = self.ist(self.deadline)
+        _shed_after = self.ist(self.schedule_after)
 
         dd = datetime.combine(eroju.date(), datetime.min.time())
 
         if self.is_recurring:
+            if _shed_after.date() > eroju.date():
+                return False
             next_rec_day = self.recurrence.after(dd)
             print("Next day", next_rec_day, self.name, self.description)
             print()

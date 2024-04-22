@@ -103,7 +103,7 @@ def rescheduletasks(request):
     tasks = student.tasks.filter(status=False) #uncompleted tasks
     tasks =  list(filter(lambda task : not task.active, tasks))
     eroju = datetime.now(IST)
-    _tasks = [ task for task in tasks if(not task.is_recurring or task.has_recurrence_today)]
+    _tasks = [ task for task in tasks if(not task.is_recurring or (task.ist(task.schedule_after).date() <= eroju.date() and task.has_recurrence_today))]
     
     return render(request, "pages/rescheduletasks.html", {"tasks": _tasks})
 
@@ -229,8 +229,9 @@ def reschedule_recurrent_task(request, pk):
         task_new.created_by.add(student)
         task_new.save()
 
-        task.schedule_after = task.schedule_after + timedelta(days=1)
-        task.deadline = task.deadline + timedelta(days=1)
+        task.schedule_after = task.schedule_after.replace(day=task_new.schedule_after.day+1, month=task_new.schedule_after.month, year=task_new.schedule_after.year)
+        task.deadline = task.deadline.replace(day=task_new.schedule_after.day+1, month=task_new.schedule_after.month, year=task_new.schedule_after.year)
+        
         task.save()
 
         print("New task", task_new.id)
@@ -278,7 +279,13 @@ def delete_task(request, pk):
 @login_required
 def mark_done(request, pk):
     task = Task.objects.get(id=pk)
-    task.status = True
+    
+    if task.is_recurring:
+        task.schedule_after = task.schedule_after.replace(day=task.schedule_after.day+1, month=task.schedule_after.month, year=task.schedule_after.year)
+        task.deadline = task.deadline.replace(day=task.schedule_after.day+1, month=task.schedule_after.month, year=task.schedule_after.year)
+    else:
+        task.status = True
+    
     task.save()
     create_schedule(request.user.username)
     redirect = request.GET.get("next")
