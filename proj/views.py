@@ -279,10 +279,10 @@ def delete_task(request, pk):
 @login_required
 def mark_done(request, pk):
     task = Task.objects.get(id=pk)
-    
+    eroju = datetime.now()
     if task.is_recurring:
-        task.schedule_after = task.schedule_after.replace(day=task.schedule_after.day+1, month=task.schedule_after.month, year=task.schedule_after.year)
-        task.deadline = task.deadline.replace(day=task.schedule_after.day+1, month=task.schedule_after.month, year=task.schedule_after.year)
+        task.schedule_after = task.schedule_after.replace(day=eroju.day+1, month=eroju.month, year=eroju.year)
+        task.deadline = task.deadline.replace(day=eroju.day+1, month=eroju.month, year=eroju.year)
     else:
         task.status = True
     
